@@ -1,0 +1,9 @@
+# Web app runtime dependencies.
+# tensorflow-cpu keeps the image small enough for free-tier hosts (no CUDA).
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+pillow>=10.0
+numpy>=1.26
+matplotlib>=3.8
+tensorflow-cpu>=2.16

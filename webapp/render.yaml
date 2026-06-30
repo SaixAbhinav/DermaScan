@@ -1,0 +1,17 @@
+# Render.com blueprint. Deploy with: New + > Blueprint, point it at this repo.
+# Root directory should be set to `skin_cancer_prediction/webapp`.
+services:
+  - type: web
+    name: dermascan
+    runtime: python
+    rootDir: skin_cancer_prediction/webapp
+    plan: starter            # free tier (512MB) is tight for TensorFlow; bump if it OOMs
+    buildCommand: pip install -r requirements.txt
+    # MODEL_URL (optional): a direct-download URL to model.keras. If set and the
+    # model is missing, it is fetched at startup. Otherwise commit it via git-LFS.
+    startCommand: python fetch_model.py && uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: MODEL_URL
+        sync: false          # set in the Render dashboard if using URL download

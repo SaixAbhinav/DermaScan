@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DermaScan — Skin Lesion Classifier</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">◑</span>
+        <div>
+          <h1>DermaScan</h1>
+          <p class="tagline">Dermoscopy lesion classifier · 7 classes · MobileNet</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="#analyze">Analyze</a>
+        <a href="#about">About the model</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="disclaimer-banner" role="note">
+    <span>⚠</span>
+    <p id="disclaimer-text">Educational demo only — not a medical device. Do not use for diagnosis.</p>
+  </div>
+
+  <main class="wrap">
+    <!-- ANALYZE ------------------------------------------------------ -->
+    <section id="analyze" class="panel">
+      <h2>Analyze a lesion image</h2>
+      <p class="muted">Upload a dermoscopy image, or try one of the examples below.</p>
+
+      <div id="dropzone" class="dropzone" tabindex="0" role="button"
+           aria-label="Upload an image">
+        <input type="file" id="file-input" accept="image/*" hidden />
+        <div class="dropzone-inner">
+          <span class="dz-icon" aria-hidden="true">⤓</span>
+          <p><strong>Drop an image here</strong> or click to browse</p>
+          <p class="muted small">JPG or PNG dermoscopy image</p>
+        </div>
+      </div>
+
+      <div class="examples">
+        <p class="muted small">Try an example:</p>
+        <div id="example-gallery" class="example-gallery"></div>
+      </div>
+    </section>
+
+    <!-- RESULTS ------------------------------------------------------ -->
+    <section id="results" class="panel results hidden" aria-live="polite">
+      <div class="results-grid">
+        <div class="image-col">
+          <div class="image-frame">
+            <img id="preview-img" alt="Selected lesion" />
+          </div>
+          <div class="toggle" id="view-toggle" hidden>
+            <button data-view="original" class="active">Original</button>
+            <button data-view="gradcam">Grad-CAM</button>
+          </div>
+          <p class="muted small gradcam-hint" id="gradcam-hint" hidden>
+            Grad-CAM highlights the regions that most influenced the prediction.
+          </p>
+        </div>
+
+        <div class="detail-col">
+          <div id="prediction-head"></div>
+          <p id="prediction-desc" class="desc"></p>
+          <h3 class="bars-title">All class probabilities</h3>
+          <div id="bars" class="bars"></div>
+        </div>
+      </div>
+    </section>
+
+    <div id="status" class="status hidden"></div>
+
+    <!-- ABOUT -------------------------------------------------------- -->
+    <section id="about" class="panel">
+      <h2>About the model</h2>
+      <p class="muted">
+        A MobileNet transfer-learning CNN fine-tuned on the
+        <a href="https://www.kaggle.com/kmader/skin-cancer-mnist-ham10000" target="_blank"
+           rel="noopener">HAM10000</a> dermoscopy dataset (7 diagnostic classes).
+        Minority classes are augmented and melanoma is up-weighted during training.
+      </p>
+
+      <div id="about-content" class="about-content">
+        <p class="muted">Loading model metrics…</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p id="footer-disclaimer" class="muted small"></p>
+      <p class="muted small">Classes: akiec · bcc · bkl · df · mel · nv · vasc</p>
+    </div>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
