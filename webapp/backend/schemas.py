@@ -21,6 +21,7 @@ class PredictionResponse(BaseModel):
     description: str                 # description of the predicted class
     gradcam_png: str | None = None  # base64-encoded PNG overlay, if available
     disclaimer: str
+    weak_match: bool = False        # top match strength is low / distribution is flat
 
 
 class ExampleImage(BaseModel):

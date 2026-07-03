@@ -27,6 +27,10 @@ from .schemas import (
 
 app = FastAPI(title="Skin Lesion Classifier", version="1.0.0")
 
+# Below this top match strength, the model isn't matching strongly to any
+# class - a common symptom of an out-of-domain input (not a dermoscopy image).
+WEAK_MATCH_THRESHOLD = 0.5
+
 
 def _class_score(code: str, probability: float) -> ClassScore:
     info = lesion_info.get_info(code)
@@ -83,6 +87,7 @@ async def predict(file: UploadFile = File(...)) -> PredictionResponse:
         description=lesion_info.get_info(predicted.code)["description"],
         gradcam_png=gradcam_png,
         disclaimer=lesion_info.DISCLAIMER,
+        weak_match=predicted.probability < WEAK_MATCH_THRESHOLD,
     )
 
 
