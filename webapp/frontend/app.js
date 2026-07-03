@@ -15,6 +15,20 @@ function badge(risk) {
   return `<span class="badge ${risk}">${label}</span>`;
 }
 
+// Risk category framed as a fact about the lesion type, never a finding about
+// the visitor's image.
+const RISK_CATEGORY_COPY = {
+  benign: "not cancerous",
+  premalignant: "a pre-cancerous category — it can progress to cancer if untreated",
+  malignant: "a type of skin cancer",
+};
+
+function categoryNote(shortName, risk) {
+  const copy = RISK_CATEGORY_COPY[risk];
+  if (!copy) return "";
+  return `${shortName} is classified as ${copy}.`;
+}
+
 function setStatus(msg, isError = false) {
   const el = $("#status");
   if (!msg) { el.classList.add("hidden"); return; }
@@ -23,8 +37,15 @@ function setStatus(msg, isError = false) {
   el.classList.remove("hidden");
 }
 
+const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
+
 // ---------- prediction -----------------------------------------------------
 async function predict(file) {
+  if (file.size > MAX_FILE_BYTES) {
+    setStatus("That image is over 10 MB — please use a smaller file.", true);
+    return;
+  }
+
   if (state.originalUrl) URL.revokeObjectURL(state.originalUrl);
   state.originalUrl = URL.createObjectURL(file);
 
@@ -81,28 +102,26 @@ function renderResults(data) {
   $("#view-toggle").hidden = !hasGradcam;
   $("#gradcam-hint").hidden = !hasGradcam;
 
-  // prediction head
+  // prediction head — framed as the model's guess, not a diagnosis
   const p = data.predicted;
   $("#prediction-head").innerHTML =
-    `<h3 class="pred-name">${p.short_name}</h3>`
+    `<h3 class="pred-name">Best match: ${p.short_name}</h3>`
     + badge(p.risk)
-    + `<span class="pred-prob">${pct(p.probability)} confidence</span>`;
+    + `<span class="pred-prob">${pct(p.probability)} match</span>`;
+  $("#prediction-category").textContent = categoryNote(p.short_name, p.risk);
+  $("#weak-match-hint").classList.toggle("hidden", !data.weak_match);
   $("#prediction-desc").textContent = data.description;
 
-  // bars (all classes, already sorted desc)
+  // bars (all classes, already sorted desc) — match strength only, no alarm styling
   $("#bars").innerHTML = data.all_scores.map((s, i) => {
-    const cls = [
-      "bar-row",
-      i === 0 ? "top" : "",
-      s.concerning ? "concerning" : "",
-    ].join(" ").trim();
+    const cls = ["bar-row", i === 0 ? "top" : ""].join(" ").trim();
     return `
       <div class="${cls}">
         <div class="bar-label">
           <span class="name">${s.short_name}</span>
-          <span class="muted">${pct(s.probability)}</span>
+          <span class="muted">${pct(s.probability)} match</span>
         </div>
-        <div class="bar-track"><div class="bar-fill" style="width:${pct(s.probability)}"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="transform:scaleX(${s.probability})"></div></div>
       </div>`;
   }).join("");
 
@@ -129,14 +148,21 @@ async function loadExamples() {
       return;
     }
     gallery.innerHTML = items.map((it) =>
-      `<div class="example-thumb" data-url="${it.url}" title="${it.name}">
+      `<div class="example-thumb" data-url="${it.url}" title="${it.name}"
+            tabindex="0" role="button" aria-label="Try example: ${it.name}">
          <img src="${it.url}" alt="${it.name}" loading="lazy" />
          <span>${it.code}</span>
        </div>`
     ).join("");
-    gallery.querySelectorAll(".example-thumb").forEach((el) =>
-      el.addEventListener("click", () => predictExampleUrl(el.dataset.url))
-    );
+    gallery.querySelectorAll(".example-thumb").forEach((el) => {
+      el.addEventListener("click", () => predictExampleUrl(el.dataset.url));
+      el.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          predictExampleUrl(el.dataset.url);
+        }
+      });
+    });
   } catch (e) { /* leave gallery empty */ }
 }
 
@@ -215,6 +241,28 @@ function initDropzone() {
   });
 }
 
+// ---------- active nav section ---------------------------------------------
+function initNavHighlight() {
+  const links = document.querySelectorAll("[data-nav-link]");
+  const sections = Array.from(links)
+    .map((l) => document.querySelector(l.getAttribute("href")))
+    .filter(Boolean);
+  if (!sections.length) return;
+
+  const setActive = (id) => {
+    links.forEach((l) => l.classList.toggle("active", l.getAttribute("href") === `#${id}`));
+  };
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const visible = entries.filter((e) => e.isIntersecting);
+      if (visible.length) setActive(visible[0].target.id);
+    },
+    { rootMargin: "-40% 0px -50% 0px" }
+  );
+  sections.forEach((s) => observer.observe(s));
+}
+
 function init() {
   initDropzone();
   document.querySelectorAll("#view-toggle button").forEach((b) =>
@@ -222,6 +270,7 @@ function init() {
   );
   loadExamples();
   loadAbout();
+  initNavHighlight();
 }
 
 document.addEventListener("DOMContentLoaded", init);

@@ -11,6 +11,8 @@ Thumbs.db
 
 # Editor / agent tooling
 .claude/
+.agents/
+skills-lock.json
 .vscode/
 .idea/
 
