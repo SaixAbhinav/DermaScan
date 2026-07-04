@@ -1,10 +1,11 @@
 # Render.com blueprint. Deploy with: New + > Blueprint, point it at this repo.
-# Root directory should be set to `skin_cancer_prediction/webapp`.
+# rootDir is relative to the repo root on GitHub (SaixAbhinav/DermaScan), where
+# webapp/ already sits at the top level -- NOT the local folder name on disk.
 services:
   - type: web
     name: dermascan
     runtime: python
-    rootDir: skin_cancer_prediction/webapp
+    rootDir: webapp
     plan: free               # 512MB RAM is tight for TensorFlow; bump to `starter` if it OOMs
     buildCommand: pip install -r requirements.txt
     # MODEL_URL (optional): a direct-download URL to model.keras. If set and the
