@@ -5,7 +5,7 @@ services:
     name: dermascan
     runtime: python
     rootDir: skin_cancer_prediction/webapp
-    plan: starter            # free tier (512MB) is tight for TensorFlow; bump if it OOMs
+    plan: free               # 512MB RAM is tight for TensorFlow; bump to `starter` if it OOMs
     buildCommand: pip install -r requirements.txt
     # MODEL_URL (optional): a direct-download URL to model.keras. If set and the
     # model is missing, it is fetched at startup. Otherwise commit it via git-LFS.
